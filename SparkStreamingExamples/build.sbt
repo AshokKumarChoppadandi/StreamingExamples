@@ -33,3 +33,6 @@ libraryDependencies += "org.apache.kafka" % "kafka-clients" % "1.1.0"
 
 // https://mvnrepository.com/artifact/org.apache.spark/spark-sql-kafka-0-10
 libraryDependencies += "org.apache.spark" % "spark-sql-kafka-0-10_2.11" % "2.4.0"
+
+// https://mvnrepository.com/artifact/mysql/mysql-connector-java
+libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.45"
