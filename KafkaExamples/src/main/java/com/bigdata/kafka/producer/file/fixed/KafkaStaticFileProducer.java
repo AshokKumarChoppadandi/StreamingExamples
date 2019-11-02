@@ -10,19 +10,18 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
 
+import static com.bigdata.kafka.producer.utils.ApplicationConstants.*;
+
 public class KafkaStaticFileProducer {
     public static void main(String[] args) throws IOException {
         String topicName = "console-test";
-        String configPath = "./src/main/resources/kafka/config.properties";
-        String file = "./src/main/resources/input/TestFile.txt";
-
         CommonUtils utils = new CommonUtils();
-        Properties properties = utils.getProperties(configPath);
+        Properties properties = utils.getProperties(CONFIG_PATH);
 
         Producer<String, String> producer = new KafkaProducer<String, String>(properties);
         ProducerRecord<String, String> record;
 
-        BufferedReader br = new BufferedReader(new FileReader(file));
+        BufferedReader br = new BufferedReader(new FileReader(TEST_FILE));
         String line;
         int lineNumber = 1;
         while ((line = br.readLine()) != null) {
