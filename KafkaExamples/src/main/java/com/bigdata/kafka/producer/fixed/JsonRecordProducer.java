@@ -10,14 +10,14 @@ import org.apache.kafka.clients.producer.internals.FutureRecordMetadata;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import static com.bigdata.kafka.producer.utils.ApplicationConstants.*;
 
 public class JsonRecordProducer {
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         String topicName = "test-with-schema";
-        String configPath = "./src/main/resources/kafka/config.properties";
 
         CommonUtils utils = new CommonUtils();
-        Properties properties = utils.getProperties(configPath);
+        Properties properties = utils.getProperties(CONFIG_PATH);
 
         Producer<String, String> producer = new KafkaProducer<String, String>(properties);
         //String message = "{\"id\":1,\"name\":\"Spark\",\"version\":2.4,\"description\":\"Apache Spark is a Distributed Computing Engine\"}";

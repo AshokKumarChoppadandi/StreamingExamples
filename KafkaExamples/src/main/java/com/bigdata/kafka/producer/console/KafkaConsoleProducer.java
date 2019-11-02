@@ -9,15 +9,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Properties;
+import static com.bigdata.kafka.producer.utils.ApplicationConstants.CONFIG_PATH;
 
 public class KafkaConsoleProducer {
     public static void main(String[] args) throws IOException {
-        //String configPath = args[0];
-        //String topicName = args[1];
         String topicName = "console-test";
-        String configPath = "./src/main/resources/kafka/config.properties";
         CommonUtils utils = new CommonUtils();
-        Properties properties = utils.getProperties(configPath);
+        Properties properties = utils.getProperties(CONFIG_PATH);
 
         utils.showProperties(properties);
         Producer<String, String> producer = new KafkaProducer<String, String>(properties);

@@ -6,14 +6,14 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.util.Properties;
+import static com.bigdata.kafka.producer.utils.ApplicationConstants.CONFIG_PATH;
 
 public class KafkaStaticMessagesProducer {
     public static void main(String[] args) {
         String topicName = "console-test";
-        String configPath = "./src/main/resources/kafka/config.properties";
 
         CommonUtils utils = new CommonUtils();
-        Properties properties = utils.getProperties(configPath);
+        Properties properties = utils.getProperties(CONFIG_PATH);
 
         Producer<String, String> producer = new KafkaProducer<String, String>(properties);
         String message;
