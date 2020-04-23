@@ -1,6 +1,4 @@
-package com.bigdata.kafka;
-
-import org.omg.SendingContext.RunTime;
+package com.bigdata.kafka.consumer;
 
 import java.util.concurrent.CountDownLatch;
 

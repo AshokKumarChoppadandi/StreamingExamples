@@ -1,4 +1,4 @@
-package com.bigdata.kafka;
+package com.bigdata.kafka.consumer;
 
 import com.bigdata.kafka.deserializer.EmployeeDeserializer;
 import com.bigdata.kafka.models.Employee;

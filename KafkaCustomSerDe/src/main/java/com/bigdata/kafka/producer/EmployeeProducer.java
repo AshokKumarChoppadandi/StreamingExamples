@@ -1,4 +1,4 @@
-package com.bigdata.kafka;
+package com.bigdata.kafka.producer;
 
 import com.bigdata.kafka.models.Employee;
 import com.bigdata.kafka.serializer.EmployeeSerializer;
