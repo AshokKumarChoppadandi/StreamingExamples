@@ -6,7 +6,6 @@ import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
 
 public class UsedCarProducer {
     public static void main(String[] args) {
@@ -25,13 +24,23 @@ public class UsedCarProducer {
         Producer<String, UsedCar> producer = new KafkaProducer<>(properties);
         ProducerRecord<String, UsedCar> producerRecord = new ProducerRecord<>(topicName, Integer.toString(1), getUsedCarRecord());
 
+        //producer.send(producerRecord);
         producer.send(producerRecord, (recordMetadata, e) -> {
             if(e != null) {
                 e.printStackTrace();
             } else {
-                System.out.println(String.format("Record sent successfully to topic: %s", topicName));
+                System.out.println(
+                        String.format("Record sent successfully. Topic: %s, Partition: %d, Offset: %d, Timestamp: %s",
+                                recordMetadata.topic(),
+                                recordMetadata.partition(),
+                                recordMetadata.offset(),
+                                recordMetadata.timestamp()
+                ));
             }
         });
+
+        producer.flush();
+        producer.close();
     }
 
     public static UsedCar getUsedCarRecord() {
