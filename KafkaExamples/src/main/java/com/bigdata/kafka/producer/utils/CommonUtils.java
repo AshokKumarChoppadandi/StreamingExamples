@@ -23,6 +23,20 @@ public class CommonUtils {
             throw new RuntimeException(e2);
         }
     }
+
+    public Properties getEmployeeProperties(String configPath) {
+        Properties properties1 = getProperties(configPath);
+        properties1.setProperty(VALUE_SERIALIZER, EMPLOYEE_VALUE_SERIALIZER);
+        return properties1;
+    }
+
+    public Properties getConsumerProperties(String configPath) {
+        Properties properties1 = getProperties(configPath);
+        properties1.setProperty(VALUE_DESERIALIZER, EMPLOYEE_VALUE_DESERIALIZER);
+        properties1.setProperty(GROUP_ID, EMPLOYEE_CONSUMER_GROUP);
+        return properties1;
+    }
+
     public void showProperties(Properties properties1) {
         System.out.println(BOOTSTRAP_SERVERS + properties1.getProperty(BOOTSTRAP_SERVERS));
         System.out.println(ACKS + properties1.getProperty(ACKS));
@@ -30,7 +44,15 @@ public class CommonUtils {
         System.out.println(BATCH_SIZE + properties1.getProperty(BATCH_SIZE));
         System.out.println(LINGER_MS + properties1.getProperty(LINGER_MS));
         System.out.println(BUFFER_MEMORY + properties1.getProperty(BUFFER_MEMORY));
-        System.out.println(STRING_KEY_SERIALIZER + properties1.getProperty(STRING_KEY_SERIALIZER));
-        System.out.println(STRING_VALUE_SERIALIZER + properties1.getProperty(STRING_VALUE_SERIALIZER));
+        System.out.println(KEY_SERIALIZER + properties1.getProperty(KEY_SERIALIZER));
+        System.out.println(VALUE_SERIALIZER + properties1.getProperty(VALUE_SERIALIZER));
+    }
+
+    public void showConsumerProperties(Properties properties1) {
+        System.out.println(BOOTSTRAP_SERVERS + " : " + properties1.getProperty(BOOTSTRAP_SERVERS));
+        System.out.println(GROUP_ID +  " : " + properties1.getProperty(GROUP_ID));
+        System.out.println(KEY_DESERIALIZER +  " : " + properties1.getProperty(KEY_DESERIALIZER));
+        System.out.println(VALUE_DESERIALIZER +  " : " + properties1.getProperty(VALUE_DESERIALIZER));
+        System.out.println(AUTO_OFFSET_RESET_CONFIG +  " : " + properties1.getProperty(AUTO_OFFSET_RESET_CONFIG));
     }
 }
