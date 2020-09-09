@@ -1,32 +1,29 @@
 package com.bigdata.spark.core
 
+import com.bigdata.spark.SparkSessionInitializer
 import com.bigdata.spark.listener.CustomSparkListener
-import org.apache.spark.sql.SparkSession
 
 object WordCount {
   def main(args: Array[String]): Unit = {
-    val spark = SparkSession.builder().appName("Spark WordCount").master("local").getOrCreate()
 
-    val listener1 = new CustomSparkListener(spark.sparkContext.getConf)
-    val listener2 = new CustomSparkListener(spark.sparkContext.getConf)
+    val spark = SparkSessionInitializer.getSparkSession("WordCount")
+    spark.sparkContext.addSparkListener(new CustomSparkListener(spark.sparkContext.getConf))
 
-    spark.sparkContext.addSparkListener(listener1)
-    spark.sparkContext.addSparkListener(listener2)
+    import spark.implicits._
 
     val list = List(
-      "Hi Hello World",
-      "Hello Good Morning",
-      "Hello Spark",
-      "Kafka and Spark Integration",
-      "Finally Hadoop"
+      "Test Test Test1 Test2 Test3",
+      "Test Test Test1 Test2 Test3",
+      "Test Test Test1 Test2 Test3",
+      "Test Test Test1 Test2 Test3",
+      "Test Test Test1 Test2 Test3"
     )
 
-    val rdd1 = spark.sparkContext.parallelize(list, 2)
-    val rdd2 = rdd1.flatMap(x => x.split("\\W+"))
+    val sentences = list.toDS
+    val words = sentences.flatMap(sentence => sentence.split("\\W+"))
+    val groupedWords = words.groupBy("value")
 
-    val rdd3 = rdd2.map(x => (x, 1))
-    val rdd4 = rdd3.reduceByKey(_ + _)
-
-    rdd4.collect.foreach(println)
+    val wordCount = groupedWords.count()
+    wordCount.show()
   }
 }

@@ -9,7 +9,7 @@ class CustomStreamingQueryListener extends StreamingQueryListener {
 
   override def onQueryProgress(event: StreamingQueryListener.QueryProgressEvent): Unit = {
     println("Number of input rows : " + event.progress.numInputRows)
-    println("Rows processed per seconds : " + event.progress.inputRowsPerSecond)
+    println("Rows processed per seconds : " + event.progress.processedRowsPerSecond)
   }
 
   override def onQueryTerminated(event: StreamingQueryListener.QueryTerminatedEvent): Unit = {
