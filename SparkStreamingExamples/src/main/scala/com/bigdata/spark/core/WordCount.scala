@@ -7,7 +7,7 @@ object WordCount {
   def main(args: Array[String]): Unit = {
 
     val spark = SparkSessionInitializer.getSparkSession("WordCount")
-    spark.sparkContext.addSparkListener(new CustomSparkListener(spark.sparkContext.getConf))
+    spark.sparkContext.addSparkListener(new CustomSparkListener(spark))
 
     import spark.implicits._
 
@@ -25,5 +25,7 @@ object WordCount {
 
     val wordCount = groupedWords.count()
     wordCount.show()
+
+    Thread.sleep(2 * 60 * 1000)
   }
 }
