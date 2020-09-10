@@ -10,7 +10,7 @@ object CsvFileStreaming extends App {
   val spark = SparkSessionInitializer.getSparkSession("Csv File Streaming")
 
   spark.streams.addListener(new CustomStreamingQueryListener)
-  spark.sparkContext.addSparkListener(new CustomSparkListener(spark.sparkContext.getConf))
+  spark.sparkContext.addSparkListener(new CustomSparkListener(spark))
 
   val schema = StructType(
     Array(
