@@ -13,6 +13,10 @@
  * 3. Throughput / Velocity is high as it doesn't wait for the acknowledgement from Kafka Broker / Partition Leader.
  * 4. Whenever any Exception occurs we have to handle the record in the required manner.
  * 5. Out of all the three method ASYNCHRONOUS SEND plays as an efficient of producing messages in most of the cases.
+ *
+ * The below property is used to set the number of messages to send message before getting the Acknowledgement.
+ *      max.in.flight.requests.per.connection
+ * Default value is 5, can be configured.
  */
 package com.bigdata.kafka.producer.types;
 
