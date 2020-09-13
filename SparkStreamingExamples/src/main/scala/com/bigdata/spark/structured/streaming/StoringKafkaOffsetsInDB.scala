@@ -1,7 +1,7 @@
 package com.bigdata.spark.structured.streaming
 
 import com.bigdata.spark.SparkSessionInitializer
-import com.bigdata.spark.models.{KafkaOffset, PartitionOffset, Technology}
+import com.bigdata.spark.models.{KafkaOffset, Technology}
 import com.bigdata.spark.streaming.utils.DBUtils
 import com.bigdata.spark.structured.streaming.ScalaUtils.{BOOTSTRAP_SERVERS, EARLIEST, KAFKA, KAFKA_BROKERS_LIST, STARTING_OFFSETS, SUBSCRIBE}
 import org.apache.spark.sql.{DataFrame, Dataset}

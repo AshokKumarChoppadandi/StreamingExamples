@@ -2,7 +2,7 @@ package com.bigdata.spark.streaming.utils
 
 import java.sql.{Connection, DriverManager, SQLException}
 
-import com.bigdata.spark.models.{KafkaOffset, PartitionOffset}
+import com.bigdata.spark.models.KafkaOffset
 import com.bigdata.spark.streaming.utils.ApplicationConstants._
 import org.apache.kafka.common.TopicPartition
 import org.apache.spark.streaming.kafka010.OffsetRange
