@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -33,6 +34,7 @@ public class TwitterProducer {
     private String topicName = "twitter-tweets";
     private String acks = "all";
     private String twitterClientName = "Twitter-Client";
+    private String snappy = "snappy";
 
     private static Logger logger = LoggerFactory.getLogger(TwitterProducer.class.getName());
 
@@ -70,22 +72,48 @@ public class TwitterProducer {
         KafkaProducer<String, String> kafkaProducer = createKafkaProducer(bootstrapServer);
         ProducerRecord<String, String> producerRecord;
 
+        /** Adding CountDownLatch */
+        CountDownLatch latch = new CountDownLatch(5);
+
+        /** Adding a Shutdown Hook*/
+        Runtime.getRuntime().addShutdownHook(new Thread("Twitter Shutdown Hook") {
+            @Override
+            public void run() {
+                logger.info("Shutting down the application...");
+                logger.info("Closing the twitter client...");
+                twitterClient.stop();
+                logger.info("Stopping twitter producer...");
+                kafkaProducer.close();
+                latch.countDown();
+                logger.info("Application stopped successfully...!!!");
+            }
+        });
+
         /** Loop to send tweets to Kafka */
         logger.info("Reading Tweets...");
         while (!twitterClient.isDone()) {
+            String message = null;
             try {
-                String message = msgQueue.poll(5, TimeUnit.SECONDS);
-                producerRecord = new ProducerRecord<>(topicName, null, message);
-                kafkaProducer.send(producerRecord, (recordMetadata, e) -> {
-                    if(e != null) {
-                        logger.error("Something bad happened : ", e);
-                    }
-                });
-                logger.info(message);
+                message = msgQueue.poll(5, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 twitterClient.stop();
             }
+
+            if (message != null) {
+                producerRecord = new ProducerRecord<>(topicName, null, message);
+                kafkaProducer.send(producerRecord, (recordMetadata, e) -> {
+                    if(e != null) {
+                        logger.error("Error Occurred : ", e);
+                    }
+                });
+                logger.info(message);
+            }
+        }
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
@@ -119,7 +147,29 @@ public class TwitterProducer {
         properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+
+        // Creating a SAFE Producer
+        properties.setProperty(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, Boolean.toString(true));
+        // If enable.idempotence is set to true then all the below configurations are set automatically.
+        // But setting here explicitly to understand
         properties.setProperty(ProducerConfig.ACKS_CONFIG, acks);
+        properties.setProperty(ProducerConfig.RETRIES_CONFIG, Integer.toString(Integer.MAX_VALUE));
+        properties.setProperty(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, Integer.toString(5));
+        properties.setProperty(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, Integer.toString(100));
+        properties.setProperty(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, Integer.toString(120000));
+
+        // High Throughput
+        // Compression
+        properties.setProperty(ProducerConfig.COMPRESSION_TYPE_CONFIG, snappy);
+        // Batching
+        properties.setProperty(ProducerConfig.LINGER_MS_CONFIG, Integer.toString(20));
+        properties.setProperty(ProducerConfig.BATCH_SIZE_CONFIG, Integer.toString(32 * 1024));
+
+        // Advance Level Settings - Not Recommended Every Time
+        // Producer Buffer Memory
+        properties.setProperty(ProducerConfig.BUFFER_MEMORY_CONFIG, Integer.toString(32 * 1024 * 1024));
+        // Producer Wait Time
+        properties.setProperty(ProducerConfig.MAX_BLOCK_MS_CONFIG, Integer.toString(6000));
 
         return new KafkaProducer<>(properties);
     }
