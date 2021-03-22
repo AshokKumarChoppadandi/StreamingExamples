@@ -1,0 +1,12 @@
+{
+    "namespace": "com.bigdata.kafka.producer.avro",
+    "type": "record",
+    "name": "Orders",
+    "description": "Item details of an Order",
+    "fields": [
+        {"name": "id", "type": "int"},
+        {"name": "name", "type": "string"},
+        {"name": "price", "type": "float"},
+        {"name": "quantity", "type": "int"}
+    ]
+}
