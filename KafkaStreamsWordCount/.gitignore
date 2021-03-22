@@ -1,3 +1,5 @@
 .idea/
 KafkaStreamsWordCount.iml
-target/
+*/target/*
+*/project/*
+*.iml

@@ -40,7 +40,7 @@ public class TwitterStreamsApp {
         String outputTopic = args[3];
 
         final Schema schema = new Schema.Parser().parse(
-                EmployeesAvroStreamsApp.class.getResourceAsStream("/TweetFiltered.avsc")
+                TwitterStreamsApp.class.getResourceAsStream("/TweetFiltered.avsc")
         );
 
         Properties properties = new Properties();

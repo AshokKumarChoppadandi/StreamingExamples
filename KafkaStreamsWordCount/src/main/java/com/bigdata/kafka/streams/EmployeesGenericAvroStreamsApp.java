@@ -23,14 +23,14 @@ import java.util.concurrent.CountDownLatch;
 /**
  * java -cp \
  *   IdeaProjects/Kafka-Streams-Examples/target/Kafka-Streams-Examples-1.0-SNAPSHOT.jar \
- *   com.bigdata.kafka.streams.EmployeesAvroStreamsApp \
+ *   com.bigdata.kafka.streams.EmployeesGenericAvroStreamsApp \
  *   EmployeesNamesAvro \
  *   broker:9092 \
  *   employees \
  *   employees-names-avro
  */
 
-public class EmployeesAvroStreamsApp {
+public class EmployeesGenericAvroStreamsApp {
     public static void main(String[] args) {
         String appName = args[0];
         String bootstrapServers = args[1];
