@@ -3,3 +3,7 @@
 *target*
 dependency-reduced-pom.xml
 *.jar
+*.ini
+*.class
+project
+
