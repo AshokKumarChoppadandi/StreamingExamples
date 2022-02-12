@@ -1,0 +1,179 @@
+
+OVERVIEW
+
+    - KStream
+
+    - KTable
+
+    - GlobalKTable
+
+CREATING SOURCE STREAMS FROM KAFKA
+
+    - Stream
+
+    - Table
+
+    - GlobalTable
+
+TRANSFORM A STREAM
+
+1. Stateless Transformations:
+
+Branch
+
+Filter
+
+InverseFilter
+
+FlatMap
+
+FlatMapValues
+
+Foreach
+
+GroupByKey
+
+GroupBy
+
+Map
+
+MapValues
+
+Peek
+
+Print
+
+SelectKey
+
+TableToStream
+
+2. Stateful Transformations:
+
+Available stateful transformations in the DSL include:
+
+- Aggregating
+
+- Joining
+
+- Windowing (as part of aggregations and joins)
+
+- Applying custom processors and transformers, which may be stateful, for Processor API integration
+
+Aggregating:
+------------
+
+i. Rolling Aggregation: This can be achieved with both Stream and Table
+
+- KGroupedStream
+
+- KGroupedTable
+
+ii. Windowed Aggregation: This can be achieved only with Stream
+
+- KGroupedStream
+
+Aggregating operations:
+
+- Aggregate (Rolling and Windowed)
+
+- Count (Rolling and Windowed)
+
+- Reduce (Rolling and Windowed)
+
+Joining:
+--------
+
+The following join operations are supported. Depending on the operands, joins are either windowed joins or non-windowed joins.
+
+---------------------------------------------------------------------------------------------
+|    Join operands          |   Type	    | (INNER) JOIN  | LEFT JOIN	    | OUTER JOIN    |
+---------------------------------------------------------------------------------------------
+| KStream-to-KStream	    | Windowed	    | Supported	    | Supported     | Supported     |
+| KTable-to-KTable	        | Non-windowed	| Supported	    | Supported     | Supported     |
+| KStream-to-KTable	        | Non-windowed	| Supported	    | Supported	    | Not Supported |
+| KStream-to-GlobalKTable	| Non-windowed	| Supported     | Supported	    | Not Supported |
+| KTable-to-GlobalKTable	| N/A	        | Not Supported	| Not Supported	| Not Supported |
+---------------------------------------------------------------------------------------------
+
+Join co-partitioning requirements:
+
+Input data must be co-partitioned when joining. This ensures that input records with the same key,
+from both sides of the join, are delivered to the same stream task during processing.
+It is the responsibility of the user to ensure data co-partitioning when joining.
+
+Tip: If possible, consider using global tables (GlobalKTable) for joining because they do not require data co-partitioning.
+
+The requirements for data co-partitioning are:
+
+    - The input topics of the join (left side and right side) must have the same number of partitions.
+    - All applications that write to the input topics must have the same partitioning strategy so that records
+      with the same key are delivered to same partition number. In other words, the keyspace of the input data
+      must be distributed across partitions in the same manner. This means that, for example, applications that
+      use Kafka’s Java Producer API must use the same partitioner (cf. the producer setting "partitioner.class"
+      aka ProducerConfig.PARTITIONER_CLASS_CONFIG), and applications that use the Kafka’s Streams API must use
+      the same StreamPartitioner for operations such as KStream#to(). The good news is that, if you happen to
+      use the default partitioner-related settings across all applications, you do not need to worry about the
+      partitioning strategy.
+
+i. KStream-KStream Join - Windowed
+
+    - Inner Join
+    - Left Join
+    - Outer Join
+
+ii. KTable-KTable Join
+
+    - Inner Join
+    - Left Join
+    - Outer Join
+
+iii. KStream-KTable Join
+
+    - Inner Join
+    - Left Join
+
+iv. KStream-GlobalKTable Join
+
+    - Inner Join
+    - Left Join
+
+Windowing:
+
+The DSL supports the following types of windows:
+
+---------------------------------------------------------------------------------------------------------------------------------
+|    Window name        |   Behavior    | Short description                                                                     |
+---------------------------------------------------------------------------------------------------------------------------------
+| Tumbling time window	| Time-based    | Fixed-size, non-overlapping, gap-less windows                                         |
+| Hopping time window	| Time-based	| Fixed-size, overlapping windows                                                       |
+| Sliding time window	| Time-based	| Fixed-size, overlapping windows that work on differences between record timestamps    |
+| Session window	    | Session-based	| Dynamically-sized, non-overlapping, data-driven windows                               |
+---------------------------------------------------------------------------------------------------------------------------------
+
+
+Applying processors and transformers (Processor API integration):
+
+Beyond the aforementioned stateless and stateful transformations, you may also leverage the Processor API from the DSL.
+There are a number of scenarios where this may be helpful:
+
+    - Customization: You need to implement special, customized logic that is not or not yet available in the DSL.
+    - Combining ease-of-use with full flexibility where it’s needed: Even though you generally prefer to use the
+        expressiveness of the DSL, there are certain steps in your processing that require more flexibility and
+        tinkering than the DSL provides. For example, only the Processor API provides access to a record’s metadata
+        such as its topic, partition, and offset information. However, you don’t want to switch completely to the
+        Processor API just because of that.
+    - Migrating from other tools: You are migrating from other stream processing technologies that provide an
+        imperative API, and migrating some of your legacy code to the Processor API was faster and/or easier
+        than to migrate completely to the DSL right away.
+
+- Process
+
+- Transform
+
+- TransformValues
+
+WRITING STREAMS BACK TO KAFKA:
+
+- To (KStream)
+
+- Through (KStream, KTable)

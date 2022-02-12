@@ -1,0 +1,13 @@
+{
+    "namespace": "com.bigdata.kafka.streams",
+    "type": "record",
+    "name": "tweet_filtered",
+    "fields": [
+        {"name": "created_date", "type": "long", "default": 0},
+        {"name": "id", "type": "long"},
+        {"name": "tweet", "type": ["string", "null"]},
+        {"name": "tweet_source", "type": ["string", "null"]},
+        {"name": "retweet_count", "type": "int"},
+        {"name": "language", "type": ["string", "null"]}
+    ]
+}

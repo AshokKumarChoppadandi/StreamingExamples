@@ -1,0 +1,5 @@
+.idea/
+KafkaStreamsWordCount.iml
+*/target/*
+*/project/*
+*.iml
