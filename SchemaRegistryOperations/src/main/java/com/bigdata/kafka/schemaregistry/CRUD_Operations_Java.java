@@ -45,6 +45,10 @@ public class CRUD_Operations_Java {
                 ops.registerSubject(SUBJECT_NAME, ops.generateAvroSchemaFromFile(inputSchemaFilePath));
                 System.out.printf("SUBJECT with name %s created successfully...!!!\n", SUBJECT_NAME);
                 break;
+            case "get_id":
+                // Get the schema id for a given Subject
+                int schemaId = ops.getSubjectSchemaId(SUBJECT_NAME);
+                System.out.printf("The schema ID for the given subject %s is - %d\n", SUBJECT_NAME, schemaId);
             case "update_compatibility":
                 // Update Subject compatibility
                 ops.updateSubjectCompatibility(SUBJECT_NAME, compatibilityMode);
@@ -97,6 +101,18 @@ public class CRUD_Operations_Java {
                 System.out.println("Not a proper input!!!");
                 break;
         }
+    }
+
+    private int getSubjectSchemaId(String subjectName) {
+
+        try {
+            SchemaMetadata schemaMetadata = client.getLatestSchemaMetadata(subjectName);
+            return schemaMetadata.getId();
+        } catch (IOException | RestClientException e) {
+            e.printStackTrace();
+        }
+
+        return -1;
     }
 
     public void getAllSubjects() {
