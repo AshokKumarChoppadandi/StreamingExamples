@@ -1,0 +1,13 @@
+{
+    "namespace": "com.bigdata.kafka.employee",
+    "type": "record",
+    "name": "Employee",
+    "description": "Employee Details",
+    "fields": [
+        {"name": "eid", "type": "int"},
+        {"name": "ename", "type": "string"},
+        {"name": "esalary", "type": "int"},
+        {"name": "edept", "type": "string"},
+        {"name": "eage", "type": "int"}
+    ]
+}

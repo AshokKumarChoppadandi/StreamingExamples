@@ -1,0 +1,13 @@
+{
+    "namespace": "com.bigdata.kafka.adserver",
+    "type": "record",
+    "name": "Adserver",
+    "description": "Adserver Logs",
+    "fields": [
+        {"name": "serverid", "type": "int"},
+        {"name": "servernameid", "type": "int"},
+        {"name": "serverhostid", "type": "int"},
+        {"name": "serverhostgroup", "type": "int"},
+        {"name": "serverlocationid", "type": "int"}
+    ]
+}

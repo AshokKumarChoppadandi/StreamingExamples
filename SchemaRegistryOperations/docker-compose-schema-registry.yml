@@ -1,0 +1,29 @@
+version: '3.5'
+
+networks:
+  registry_nw:
+    driver: bridge
+    name: registry_nw
+
+services:
+  schema-registry:
+    image: ashokkumarchoppadandi/confluent-kafka:5.5.3
+    container_name: schema-registry
+    networks:
+      - registry_nw
+    environment:
+      SCHEMA_REGISTRY_LISTENERS: http:\/\/0.0.0.0:8081
+      KAFKASTORE_BOOTSTRAP_SERVERS: "192.168.0.211:9092,192.168.0.212:9092,192.168.0.213:9092"
+      KAFKASTORE_TOPIC: "_schemas2"
+      DEBUG: "true"
+    ports:
+      - "8081:8081"
+    extra_hosts:
+      - "master1.bigdata.com:192.168.0.201"
+      - "master2.bigdata.com:192.168.0.202"
+      - "master3.bigdata.com:192.168.0.203"
+      - "worker1.bigdata.com:192.168.0.211"
+      - "worker2.bigdata.com:192.168.0.212"
+      - "worker3.bigdata.com:192.168.0.213"
+    hostname: schema-registry
+    command: schemaregistry
