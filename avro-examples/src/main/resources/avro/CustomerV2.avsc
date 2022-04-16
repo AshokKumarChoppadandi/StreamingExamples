@@ -1,0 +1,15 @@
+{
+    "type": "record",
+    "namespace": "com.bigdata.avro",
+    "name": "CustomerV2",
+    "doc": "Avro Schema for Customer",
+    "fields": [
+        { "name": "first_name", "type": "string", "doc": "First Name of the Customer" },
+        { "name": "last_name", "type": "string", "doc": "Last Name of the Customer" },
+        { "name": "age", "type": "int", "doc": "Age of the Customer" },
+        { "name": "height", "type": "float", "doc": "Height of the Customer in cms" },
+        { "name": "weight", "type": "float", "doc": "Weight of the Customer in kgs" },
+        { "name": "phone", "type": [ "null", "string"], "default": null, "doc": "Customer Phone" },
+        { "name": "email", "type": "string", "default": "abc@gmail.com", "doc": "Customer Email" }
+    ]
+}
