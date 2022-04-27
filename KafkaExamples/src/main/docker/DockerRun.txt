@@ -1,0 +1,12 @@
+docker run \
+  -idt \
+  --name edgar_logs_producer1 \
+  -v /c/Users/lenovo/IdeaProjects/StreamingExamples/KafkaExamples/src/main/resources/input_logs/:/edgar/input_logs/:rw \
+  -e BOOTSTRAP_SERVERS="SASL_SSL:\/\/worker1.bigdata.com:9094,SASL_SSL:\/\/worker2.bigdata.com:9094,SASL_SSL:\/\/worker3.bigdata.com:9094" \
+  -e SCHEMA_REGISTRY_URL="http:\/\/admin2.bigdata.com:8081" \
+  --add-host worker1.bigdata.com:192.168.0.211 \
+  --add-host worker2.bigdata.com:192.168.0.212 \
+  --add-host worker3.bigdata.com:192.168.0.213 \
+  --add-host admin1.bigdata.com:192.168.0.111 \
+  --add-host admin2.bigdata.com:192.168.0.112 \
+  ashokkumarchoppadandi/edgar-logs-kafka-producer:1.0-SNAPSHOT sh

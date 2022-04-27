@@ -1,0 +1,21 @@
+{
+  "type": "record",
+  "name": "EdgarLog",
+  "fields": [
+    {"name": "ip", "type": "string"},
+    {"name": "date", "type": "string"},
+    {"name": "time", "type": "string"},
+    {"name": "zone", "type": "string"},
+    {"name": "cik", "type": "string"},
+    {"name": "accession", "type": "string"},
+    {"name": "extention", "type": "string"},
+    {"name": "code", "type": "string"},
+    {"name": "size", "type": "string"},
+    {"name": "idx", "type": "string"},
+    {"name": "norefer", "type": "string"},
+    {"name": "noagent", "type": "string"},
+    {"name": "find", "type": "string"},
+    {"name": "crawler", "type": "string"},
+    {"name": "browser", "type": "string"}
+  ]
+}
