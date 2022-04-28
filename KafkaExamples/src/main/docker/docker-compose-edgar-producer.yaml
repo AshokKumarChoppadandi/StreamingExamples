@@ -1,0 +1,54 @@
+version: '3'
+
+networks:
+  hadoop_cluster:
+    driver: bridge
+
+services:
+  edgar_logs_producer:
+    image: ashokkumarchoppadandi/edgar-logs-kafka-producer:1.0-SNAPSHOT
+    hostname: edgar_logs_producer
+    container_name: edgar_logs_producer
+    networks:
+      - hadoop_cluster
+    environment:
+      BOOTSTRAP_SERVERS: SASL_SSL:\/\/worker1.bigdata.com:9094,SASL_SSL:\/\/worker2.bigdata.com:9094,SASL_SSL:\/\/worker3.bigdata.com:9094
+      ACKS: all
+      RETRIES: 0
+      BATCH_SIZE: 16384
+      LINGER_MS: 1
+      BUFFER_MEMORY: 33554432
+      KEY_SERIALIZER: org.apache.kafka.common.serialization.StringSerializer
+      VALUE_SERIALIZER: io.confluent.kafka.serializers.KafkaAvroSerializer
+      SCHEMA_REGISTRY_URL: http:\/\/admin2.bigdata.com:8081
+      SCHEMA_FILE_LOCATION: \/edgar\/edgar.avsc
+      OUTPUT_FORMAT: avro
+      TOPIC_NAME: logs-test
+      INPUT_LOGS_DIR: \/edgar\/input_logs\/
+      SSL_KEYSTORE_LOCATION: /secure/kafka.client.keystore.jks
+      SSL_KEY_PASSWORD: clientpassword
+      SSL_KEYSTORE_PASSWORD: clientpassword
+      SSL_TRUSTSTORE_LOCATION: /secure/kafka.client.truststore.jks
+      SSL_TRUSTSTORE_PASSWORD: clientpassword
+      SECURITY_PROTOCOL: SASL_SSL
+      SASL_KERBEROS_SERVICE_NAME: kafka
+      KRB5_CONF_FILE: /etc/krb5.conf
+      KDC_HOSTNAME: admin1.bigdata.com
+      KERBEROS_ADMIN_SERVER: admin1.bigdata.com
+      KAFKA_CLIENT_JAAS_FILE: /secure/kafka_client_jaas.conf
+      KAFKA_CLIENT_USER_KEYTAB: \/secure\/kafka_client.user.keytab
+      KAFKA_CLIENT_KERBEROS_PRINICIPAL: kafka@KAFKA.SECURE
+      CONFIG_FILE_PATH: /edgar/edgar-avro-config.properties
+      IS_CONFIGURING_PROPERTIES_REQUIRED: "yes"
+      IS_KERBEROS_AUTHENTICATION_REQUIRED: "yes"
+      JAR_FILE_LOCATION: /java_examples/
+      JAR_NAME: KafkaExamples-1.0-SNAPSHOT.jar
+      RUN_CLASS: com.bigdata.kafka.producer.file.dynamic.EdgarLogsKafkaDynamicFileProducer
+    extra_hosts:
+      - "admin1.bigdata.com:192.168.0.111"
+      - "worker1.bigdata.com:192.168.0.211"
+      - "worker2.bigdata.com:192.168.0.212"
+      - "worker3.bigdata.com:192.168.0.213"
+      - "admin2.bigdata.com:192.168.0.112"
+    volumes:
+      - /c/Users/lenovo/IdeaProjects/StreamingExamples/KafkaExamples/src/main/resources/input_logs/:/edgar/input_logs/:rw
