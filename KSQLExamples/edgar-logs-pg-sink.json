@@ -1,0 +1,25 @@
+{
+    "name": "edgar-logs-pg-sink",
+    "config": {
+        "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+        "dialect.name": "PostgreSqlDatabaseDialect",
+        "insert.mode": "upsert",
+        "batch.size": 3000,
+        "table.name.format": "${topic}",
+        "pk.mode": "kafka",
+        "pk.fields": "__connect_topic,__connect_partition,__connect_offset",
+        "fields.whitelist": "",
+        "db.timezone": "UTC",
+        "connection.url": "jdbc:postgresql://postgres:5432/kafkadb",
+        "connection.user": "hadoop",
+        "connection.password": "Password@123",
+        "auto.create": "true",
+        "auto.evolve": "true",
+        "topics": "edgar-logs-formatted",
+        "tasks.max": "5",
+        "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+		"value.converter": "io.confluent.connect.avro.AvroConverter",
+		"value.converter.schema.registry.url": "http://schemaregistry:8081",
+		"value.converter.schemas.enable": "true"
+    }
+}
