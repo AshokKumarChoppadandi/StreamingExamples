@@ -1,0 +1,23 @@
+{
+  "name": "edgar-hdfs-orc-sink",
+  "config": {
+    "connector.class": "io.confluent.connect.hdfs.HdfsSinkConnector",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "value.converter.schema.registry.url": "http://schemaregistry:8081",
+    "value.converter.schema.enable": "true",
+    "tasks.max": "10",
+    "topics": "edgar-logs-formatted",
+    "store.url": "hdfs://namenode:9000",
+    "logs.dir": "/user/hive/warehouse/edgar_logs.db/",
+    "directory.delim": "/",
+    "format.class": "io.confluent.connect.hdfs.orc.OrcFormat",
+    "flush.size": "10",
+    "rotate.interval.ms": "10000",
+    "transforms": "RenameField",
+    "transforms.RenameField.type": "org.apache.kafka.connect.transforms.ReplaceField$Value",
+    "transforms.RenameField.renames": "IP_ADDRESS:ip_address,REQUEST_DATE:request_date,REQUEST_TIME:request_time,REQUESTED_HOUR:requested_hour,ZONE:zone,CIK:cik,ACCESSION:accession,RESPONSE_CODE:response_code,RESPONSE_BYTES_SIZE:response_bytes_size,IDX:idx,NOREFER:norefer,NOAGENT:noagent,FIND:find,CRAWLER:crawler,BROWSER:browser",
+    "partitioner.class": "io.confluent.connect.storage.partitioner.FieldPartitioner",
+    "partition.field.name": "request_date,requested_hour"
+  }
+}

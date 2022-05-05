@@ -1,0 +1,194 @@
+docker-compose -f docker-compose-hadoop-kafka-es.yaml up -d
+
+docker-compose -f docker-compose-hadoop-kafka-es.yaml ps -a
+
+docker exec -it docker-images_broker_1 sh
+
+kafka-topics --bootstrap-server broker:9092 --create --topic edgar-logs-avro --partitions 10 --replication-factor 1
+
+
+java -cp /home/ashok/IdeaProjects/StreamingExamples/KafkaExamples/target/KafkaExamples-1.0-SNAPSHOT.jar com.bigdata.kafka.edgar_logs.ReadEDGARLog2 /home/ashok/Downloads/log20170630.csv
+
+kafka-avro-console-consumer --bootstrap-server broker:9092 --topic edgar-logs-avro --property schema.registry.url=http://schemaregistry:8081 --max-messages 5
+
+docker exec -it docker-images_ksql_1 ksql http://ksql:8088
+
+list topics;
+
+print 'edgar-logs-avro' limit 5;
+
+print 'edgar-logs-avro' from beginning limit 5;
+
+SET 'auto.offset.reset'='earliest';
+
+
+CREATE STREAM EDGAR_LOGS_RAW WITH (KAFKA_TOPIC='edgar-logs-avro', VALUE_FORMAT='AVRO');
+
+DESCRIBE EDGAR_LOGS_RAW;
+
+SELECT * FROM EDGAR_LOGS_RAW EMIT CHANGES;
+
+CREATE STREAM EDGAR_LOGS_FORMATTED WITH (
+  KAFKA_TOPIC = 'edgar-logs-formatted',
+  VALUE_FORMAT = 'AVRO'
+) AS 
+select 
+  IP AS IP_ADDRESS, 
+  `DATE` AS REQUEST_DATE, 
+  `TIME` AS REQUEST_TIME,
+  CAST(SPLIT(`TIME`, ':')[1] AS INT) AS REQUESTED_HOUR,
+  CASE 
+    WHEN ZONE IS NOT NULL THEN CAST( CAST( ZONE AS DOUBLE ) AS INT )
+    ELSE -1
+  END AS ZONE,
+  CASE 
+    WHEN CIK IS NOT NULL THEN CAST( CAST( CIK AS DOUBLE ) AS BIGINT )
+    ELSE CAST( '-1' AS BIGINT )
+  END AS CIK,
+  ACCESSION,
+  EXTENTION,
+  CASE 
+    WHEN CODE IS NOT NULL THEN CAST( CAST( CODE AS DOUBLE ) AS INT)
+    ELSE -1
+  END AS RESPONSE_CODE,
+  CASE 
+    WHEN `SIZE` IS NOT NULL THEN CAST( CAST( `SIZE` AS DOUBLE ) AS INT )
+    ELSE -1
+  END AS RESPONSE_BYTES_SIZE,
+  CASE 
+    WHEN IDX IS NOT NULL THEN CAST( IDX AS DOUBLE)
+    ELSE CAST('-1.0' AS DOUBLE)
+  END AS IDX,
+  CASE 
+    WHEN NOREFER IS NOT NULL THEN CAST (NOREFER AS DOUBLE)
+    ELSE CAST('-1.0' AS DOUBLE)
+  END AS NOREFER,
+  CASE 
+    WHEN NOAGENT IS NOT NULL THEN CAST (NOAGENT AS DOUBLE)
+    ELSE CAST('-1.0' AS DOUBLE)
+  END AS NOAGENT,
+  CASE 
+    WHEN FIND IS NOT NULL THEN CAST (FIND AS DOUBLE)
+    ELSE CAST('-1.0' AS DOUBLE)
+  END AS FIND,
+  CASE 
+    WHEN CRAWLER IS NOT NULL THEN CAST (CRAWLER AS DOUBLE)
+    ELSE CAST('-1.0' AS DOUBLE)
+  END AS CRAWLER,
+  BROWSER
+FROM edgar_logs_raw EMIT CHANGES;
+
+DESCRIBE EXTENDED EDGAR_LOGS_FORMATTED;
+
+SELECT * FROM EDGAR_LOGS_FORMATTED EMIT CHANGES;
+
+
+{
+  "name": "edgar-hdfs-orc-sink",
+  "config": {
+    "connector.class": "io.confluent.connect.hdfs.HdfsSinkConnector",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "value.converter.schema.registry.url": "http://schemaregistry:8081",
+    "value.converter.schema.enable": "true",
+    "tasks.max": "10",
+    "topics": "edgar-logs-formatted",
+    "store.url": "hdfs://namenode:9000",
+    "logs.dir": "/user/hive/warehouse/edgar_logs_orc/",
+    "directory.delim": "/",
+    "format.class": "io.confluent.connect.hdfs.orc.OrcFormat",
+    "flush.size": "10",
+    "rotate.interval.ms": "10000",
+    "transforms": "RenameField",
+    "transforms.RenameField.type": "org.apache.kafka.connect.transforms.ReplaceField$Value",
+    "transforms.RenameField.renames": "IP_ADDRESS:ip_address,REQUEST_DATE:request_date,REQUEST_TIME:request_time,REQUESTED_HOUR:requested_hour,ZONE:zone,CIK:cik,ACCESSION:accession,RESPONSE_CODE:response_code,RESPONSE_BYTES_SIZE:response_bytes_size,IDX:idx,NOREFER:norefer,NOAGENT:noagent,FIND:find,CRAWLER:crawler,BROWSER:browser",
+    "partitioner.class": "io.confluent.connect.storage.partitioner.FieldPartitioner",
+    "partition.field.name": "request_date,requested_hour"
+  }
+}
+
+
+curl -X POST -H "Content-Type: application/json" -H "Accept: application/json" -d @edgar-hdfs-orc-sink.json http://localhost:8083/connectors
+
+docker exec -it docker-images_sparkhiveslave1_1 sh
+
+hdfs dfs -ls /user/hive/warehouse/edgar_logs_orc/topics/edgar-logs-formatted
+
+hive
+
+create database edgar_logs;
+
+use edgar_logs;
+
+create external table edgar_logs_orc (
+IP_ADDRESS string,
+REQUEST_TIME string,
+ZONE int,
+CIK bigint,
+ACCESSION string,
+EXTENTION string,
+RESPONSE_CODE int,
+RESPONSE_BYTES_SIZE int,
+IDX double,
+NOREFER double,
+NOAGENT double,
+FIND double,
+CRAWLER double,
+BROWSER string
+) partitioned by (
+REQUEST_DATE string,
+REQUESTED_HOUR string
+) stored as ORC
+location '/user/hive/warehouse/edgar_logs_orc/topics/edgar-logs-formatted/';
+
+
+msck repair table edgar_logs_orc;
+
+select request_date, requested_hour, count(1) from edgar_logs_orc group by request_date, requested_hour;
+
+http://localhost:9200
+
+http://localhost:5601
+
+{
+	"name": "edgar-logs-es-sink",
+	"config": {
+		"connector.class": "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector",
+		"connection.url": "http://elasticsearch01:9200",
+		"topics": "edgar-logs-formatted",
+		"tasks.max": "10",
+		"key.converter": "org.apache.kafka.connect.storage.StringConverter",
+		"value.converter": "io.confluent.connect.avro.AvroConverter",
+		"value.converter.schema.registry.url": "http://schemaregistry:8081",
+		"value.converter.schemas.enable": "true",
+		"type.name": "_doc",
+		"batch.size": 2000,
+		"max.in.flight.requests": 5,
+		"max.buffered.records": 20000,
+		"linger.ms": 10,
+		"flush.timeout.ms": 180000,
+		"max.retries": 5,
+		"retry.backoff.ms": 100,
+		"connection.compression": false,
+		"max.connection.idle.time.ms": 60000,
+		"connection.timeout.ms": 1000,
+		"read.timeout.ms": 3000,
+		"key.ignore": true,
+		"schema.ignore": false,
+		"compact.map.entries": true,
+		"topic.schema.ignore": "edgar-logs-formatted",
+		"drop.invalid.message": true,
+		"behavior.on.null.values": "IGNORE",
+		"behavior.on.malformed.documents": "WARN",
+		"write.method": "UPSERT",
+		"transforms": "RenameField",
+		"transforms.RenameField.type": "org.apache.kafka.connect.transforms.ReplaceField$Value",
+		"transforms.RenameField.renames": "IP_ADDRESS:ip_address,REQUEST_DATE:request_date,REQUEST_TIME:request_time,REQUESTED_HOUR:requested_hour,ZONE:zone,CIK:cik,ACCESSION:accession,RESPONSE_CODE:response_code,RESPONSE_BYTES_SIZE:response_bytes_size,IDX:idx,NOREFER:norefer,NOAGENT:noagent,FIND:find,CRAWLER:crawler,BROWSER:browser"
+	}
+}
+
+
+curl -X POST -H "Content-Type: application/json" -H "Accept: application/json" -d @edgar-logs-es-sink.json http://localhost:8083/connectors
+
+
+java -cp /home/ashok/IdeaProjects/StreamingExamples/KafkaExamples/target/KafkaExamples-1.0-SNAPSHOT.jar com.bigdata.kafka.edgar_logs.ReadEDGARLog2 /home/ashok/Downloads/log20170630.csv

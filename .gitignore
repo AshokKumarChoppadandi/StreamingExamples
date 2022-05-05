@@ -6,4 +6,6 @@ dependency-reduced-pom.xml
 *.ini
 *.class
 project
-
+*.avro
+null
+.DS_Store

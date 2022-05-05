@@ -15,11 +15,11 @@
         "connection.password": "Password@123",
         "auto.create": "true",
         "auto.evolve": "true",
-        "topics": "edgar-logs-formatted",
+        "topics": "aggregated-edgar-logs",
         "tasks.max": "5",
         "key.converter": "org.apache.kafka.connect.storage.StringConverter",
-		"value.converter": "io.confluent.connect.avro.AvroConverter",
-		"value.converter.schema.registry.url": "http://schemaregistry:8081",
-		"value.converter.schemas.enable": "true"
+        "value.converter": "io.confluent.connect.avro.AvroConverter",
+        "value.converter.schema.registry.url": "http://schemaregistry:8081",
+        "value.converter.schemas.enable": "true"
     }
 }

@@ -51,4 +51,4 @@ services:
       - "worker3.bigdata.com:192.168.0.213"
       - "admin2.bigdata.com:192.168.0.112"
     volumes:
-      - /c/Users/lenovo/IdeaProjects/StreamingExamples/KafkaExamples/src/main/resources/input_logs/:/edgar/input_logs/:rw
+      - ../resources/input_logs/:/edgar/input_logs/:rw
