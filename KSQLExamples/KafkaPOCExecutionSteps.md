@@ -12,7 +12,7 @@
 
 ### Setting up DEV Environment
 
-Spin up the Docker Containers for setting up the Dev Environment using this docker-compose file.
+Spin up the Docker Containers for setting up the Dev Environment using this [docker-compose file](https://github.com/AshokKumarChoppadandi/dev-environments/blob/develop/DockerImages/docker-compose-hadoop-kafka-es-2.yaml)
 
 ```
 docker-compose -f docker-compose-hadoop-kafka-es-2.yaml up -d
