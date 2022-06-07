@@ -24,6 +24,7 @@ configure_kafka_producer_properties() {
   sed -i -e "s/OUTPUT_FORMAT/$OUTPUT_FORMAT/"g "$CONFIG_FILE_PATH"
   sed -i -e "s/TOPIC_NAME/$TOPIC_NAME/"g "$CONFIG_FILE_PATH"
   sed -i -e "s/INPUT_LOGS_DIR/$INPUT_LOGS_DIR/"g "$CONFIG_FILE_PATH"
+  sed -i -e "s/ENABLE_IDEMPOTENCE/$ENABLE_IDEMPOTENCE/"g "$CONFIG_FILE_PATH"
 }
 
 configure_kafka_producer_properties_for_kerberos_authentication() {

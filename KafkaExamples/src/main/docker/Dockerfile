@@ -35,6 +35,7 @@ ENV SCHEMA_FILE_LOCATION "\/edgar\/edgar.avsc"
 ENV OUTPUT_FORMAT avro
 ENV TOPIC_NAME logs-test
 ENV INPUT_LOGS_DIR "\/edgar\/input_logs\/"
+ENV ENABLE_IDEMPOTENCE "true"
 
 # SASL_SSL / GSSAPI (SSL & KEREROS AUTHENTICATION) PROPERTIES
 ENV SSL_KEYSTORE_LOCATION "/secure/kafka.client.keystore.jks"
