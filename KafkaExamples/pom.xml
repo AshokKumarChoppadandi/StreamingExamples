@@ -13,7 +13,7 @@
         <maven.compiler.target>8</maven.compiler.target>
         <kafka.version>2.3.0</kafka.version>
         <commons.io.version>2.7</commons.io.version>
-        <avro.version>1.11.0</avro.version>
+        <avro.version>1.11.3</avro.version>
         <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
         <maven.shade.plugin.version>3.2.2</maven.shade.plugin.version>
         <avro.maven.plugin.version>1.11.0</avro.maven.plugin.version>
