@@ -25,7 +25,7 @@ public class ListConsumerGroupOffsets {
                 System.out.println(x + " -> " + y);
 
             });
-        } catch (Exception e) {
+        } catch (Exception ignored) {
 
         }
     }
