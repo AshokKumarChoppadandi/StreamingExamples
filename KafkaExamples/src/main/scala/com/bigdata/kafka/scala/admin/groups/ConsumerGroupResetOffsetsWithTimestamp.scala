@@ -10,7 +10,7 @@ import java.net.{HttpURLConnection, URL}
 import HttpURLConnection._
 import java.io.OutputStreamWriter
 import java.util.Properties
-import java.util
+import java.{lang, util}
 import scala.io.Source.fromInputStream
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -23,15 +23,25 @@ object ConsumerGroupResetOffsetsWithTimestamp {
     val propertiesFile = config.propertiesFile.toOption.get
     val bootstrapServerUrl = config.bootstrapServerUrl.toOption.get
     val connectServerUrl = config.connectServerUrl.toOption.get
-    val action = config.action.toOption.get
-
+    val epochTimestamp = config.epochTimestamp.toOption
     val connectorConfig = ujson.read(os.read(os.Path(propertiesFile)))
 
     val connectorName = connectorConfig("name").str
     val topicName = connectorConfig("config")("topics").str
     val connectorConsumerGroup = s"connect-${connectorName}"
-    println(connectServerUrl)
-    val connectServerBaseUrl = if (connectServerUrl.startsWith("http://")) connectServerUrl else s"http://${connectServerUrl}/"
+    val connectServerBaseUrl = getValidConnectServerUrl(connectServerUrl)
+    println(s"Connect Server Base URL - ${connectServerBaseUrl}")
+
+    val connectServerVersion = getConnectServerVersion(connectServerBaseUrl)
+    println(connectServerVersion)
+
+    val action = config.action.toOption.get
+    val validAction = if (connectServerVersion.startsWith("6.") && List("resume", "stop").contains(action)) {
+      println(s"Action `${action}` is not supported in Kafka Connect v${connectServerVersion}")
+      null
+    } else {
+      action
+    }
 
     val properties = new Properties()
 
@@ -42,36 +52,53 @@ object ConsumerGroupResetOffsetsWithTimestamp {
 
     val kafkaConsumer = new KafkaConsumer[String, String](properties)
 
-    val connectServerVersion = getConnectServerVersion(connectServerBaseUrl)
-    println(connectServerVersion)
-
-    val response = action match {
+    val response = validAction match {
       case "start" => startConnector(connectServerBaseUrl, connectorConfig.toString())
-      case "resume" => if (connectServerVersion.startsWith("6.")) {
-        println(s"Logging - WARN - Stopping a Kafka Connector is not possible in KafkaConnect ${connectServerVersion}")
-        println("Logging - WARN - Instead deleting the KafkaConnector")
-        startConnector(connectServerBaseUrl, connectorConfig.toString)
-      } else {
-        resumeConnector(connectServerBaseUrl, connectorName)
-      }
+      case "resume" => resumeConnector(connectServerBaseUrl, connectorName)
+        /*if (connectServerVersion.startsWith("6.")) {
+          println(s"Logging - WARN - Stopping a Kafka Connector is not possible in KafkaConnect ${connectServerVersion}")
+          println("Logging - WARN - Instead deleting the KafkaConnector")
+          startConnector(connectServerBaseUrl, connectorConfig.toString)
+        } else {
+          resumeConnector(connectServerBaseUrl, connectorName)
+        }*/
       case "status" => statusOfConnector(connectServerBaseUrl, connectorName)
       case "describe" => describeConnector(connectServerBaseUrl, connectorName)
-      case "stop" => if (connectServerVersion.startsWith("6.")) {
-        println(s"Logging - WARN - Stopping a Kafka Connector is not possible in KafkaConnect ${connectServerVersion}")
-        println("Logging - WARN - Instead deleting the KafkaConnector")
-        deleteConnector(connectServerBaseUrl, connectorName)
-      } else {
-        stopConnector(connectServerBaseUrl, connectorName)
-      }
-      case "delete" =>
-        println(s"Deleting Connector - $connectorName")
-        deleteConnector(connectServerBaseUrl, connectorName)
+      case "stop" => stopConnector(connectServerBaseUrl, connectorName)
+        /*if (connectServerVersion.startsWith("6.")) {
+          println(s"Logging - WARN - Stopping a Kafka Connector is not possible in KafkaConnect ${connectServerVersion}")
+          println("Logging - WARN - Instead deleting the KafkaConnector")
+          deleteConnector(connectServerBaseUrl, connectorName)
+        } else {
+          stopConnector(connectServerBaseUrl, connectorName)
+        }*/
+      case "delete" => deleteConnector(connectServerBaseUrl, connectorName)
       case "get-offsets" => getCurrentOffsets(properties, connectorConsumerGroup)
-      case "dry-run" | "execute" =>
-        println("Inside dry-run")
-        val epochTimestamp = config.epochTimestamp.toOption.get.asInstanceOf[java.lang.Long]
+      case "dry-run" => resetKafkaConsumerOffsetsDryRun(kafkaConsumer, topicName, epochTimestamp)
+      case "execute" =>
         val topicPartitionOffsetAndTimestamp = getOffsetsForTimestamp(kafkaConsumer, topicName, epochTimestamp)
-        println(s"Test - ${topicPartitionOffsetAndTimestamp}")
+        val status = convertStringToJson(statusOfConnector(connectServerBaseUrl, connectorName))("connector")("state").str
+        if (status.equals("RUNNING")) {
+          if (connectServerVersion.startsWith("6.")) {
+            deleteConnector(connectServerBaseUrl, connectorName)
+            println("Connector deleted")
+          } else {
+            stopConnector(connectServerBaseUrl, connectorName)
+            println("Connector stopped")
+          }
+        }
+
+        resetConsumerOffsets(kafkaConsumer, topicPartitionOffsetAndTimestamp)
+
+        if (connectServerVersion.startsWith("6.")) {
+          startConnector(connectServerBaseUrl, connectorConfig.toString())
+          println("Connector started")
+        } else {
+          resumeConnector(connectServerBaseUrl, connectorName)
+          println("Connector resumed")
+        }
+        /*
+        val topicPartitionOffsetAndTimestamp = getOffsetsForTimestamp(kafkaConsumer, topicName, epochTimestamp)
         if (action.equals("execute")) {
           println(s"Logging Stopping connector - ${connectorName}")
           val status = convertStringToJson(statusOfConnector(connectServerBaseUrl, connectorName))("connector")("state").str
@@ -95,6 +122,7 @@ object ConsumerGroupResetOffsetsWithTimestamp {
           }
         }
         printTopicPartitionsAndOffsets(topicPartitionOffsetAndTimestamp)
+        */
 
       case _ =>
         config.printHelp()
@@ -104,8 +132,27 @@ object ConsumerGroupResetOffsetsWithTimestamp {
 
   }
 
-  private def printTopicPartitionsAndOffsets(topicPartitionOffsetAndTimestamp: util.Map[TopicPartition, OffsetAndTimestamp]): String = {
-    topicPartitionOffsetAndTimestamp.asScala
+  private def resetKafkaConsumerOffsetsDryRun(kafkaConsumer: KafkaConsumer[String, String], topicName: String, epochTimestamp: Option[Long]): String = {
+    val topicPartitionOffsetAndTimestamp = getOffsetsForTimestamp(kafkaConsumer, topicName, epochTimestamp)
+    printTopicPartitionsAndOffsets(sortKafkaTopicPartitions(topicPartitionOffsetAndTimestamp))
+  }
+
+
+  private def getValidConnectServerUrl(connectServerUrl: String) = {
+    val serverUrl = if (connectServerUrl.startsWith("http://")) {
+      connectServerUrl
+    } else {
+      s"http://${connectServerUrl}"
+    }
+    if (serverUrl.endsWith("/")) {
+      serverUrl
+    } else {
+      s"${serverUrl}/"
+    }
+  }
+
+  private def printTopicPartitionsAndOffsets(topicPartitionOffsetAndTimestamp: Seq[(TopicPartition, OffsetAndTimestamp)]): String = {
+    topicPartitionOffsetAndTimestamp
       .map { case (t, o) => (t, o.offset()) }
       .toString()
   }
@@ -133,11 +180,12 @@ object ConsumerGroupResetOffsetsWithTimestamp {
       .toString()
   }
 
-  private def getOffsetsForTimestamp(kafkaConsumer: KafkaConsumer[String, String], topicName: String, epochTimestamp: java.lang.Long): util.Map[TopicPartition, OffsetAndTimestamp] = {
+  private def getOffsetsForTimestamp(kafkaConsumer: KafkaConsumer[String, String], topicName: String, epochTimestamp: Option[Long]): util.Map[TopicPartition, OffsetAndTimestamp] = {
+    val javaEpochTimestamp = epochTimestamp.get.asInstanceOf[java.lang.Long]
     val partitionsInfo = kafkaConsumer.partitionsFor(topicName)
     val topicPartitionsWithTimestamp = partitionsInfo
       .asScala
-      .map(x => new TopicPartition(x.topic(), x.partition()) -> epochTimestamp)
+      .map(x => new TopicPartition(x.topic(), x.partition()) -> javaEpochTimestamp)
       .toMap
       .asJava
     kafkaConsumer.offsetsForTimes(topicPartitionsWithTimestamp)
@@ -218,7 +266,7 @@ object ConsumerGroupResetOffsetsWithTimestamp {
     ujson.read(input)
   }
 
-  private def sortKafkaTopicPartitions(topicPartitionOffsetsAndTimestamp: mutable.Map[TopicPartition, OffsetAndTimestamp]): Seq[(TopicPartition, OffsetAndTimestamp)] = {
-    topicPartitionOffsetsAndTimestamp.toSeq.sortBy(x => x._1.partition())
+  private def sortKafkaTopicPartitions(topicPartitionOffsetsAndTimestamp: util.Map[TopicPartition, OffsetAndTimestamp]): Seq[(TopicPartition, OffsetAndTimestamp)] = {
+    topicPartitionOffsetsAndTimestamp.asScala.toSeq.sortBy(x => x._1.partition())
   }
 }
