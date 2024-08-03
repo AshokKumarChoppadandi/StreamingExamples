@@ -11,13 +11,16 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <kafka.version>3.6.1</kafka.version>
+        <kafka.version>2.3.0</kafka.version>
         <commons.io.version>2.7</commons.io.version>
         <avro.version>1.11.0</avro.version>
         <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
         <maven.shade.plugin.version>3.2.2</maven.shade.plugin.version>
         <avro.maven.plugin.version>1.11.0</avro.maven.plugin.version>
         <build.helper.maven.plugin.version>3.2.0</build.helper.maven.plugin.version>
+        <scala.maven.plugin.version>4.8.1</scala.maven.plugin.version>
+        <scala.major.version>2.12</scala.major.version>
+        <scala.minor.version>18</scala.minor.version>
         <docker.maven.plugin.version>0.33.0</docker.maven.plugin.version>
         <docker.container.hostname>hello-docker-host</docker.container.hostname>
         <docker.push.registry>docker.io</docker.push.registry>
@@ -76,7 +79,7 @@
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-streams-avro-serde</artifactId>
-            <version>5.3.3</version>
+            <version>7.5.4</version>
         </dependency>
 
         <dependency>
@@ -96,6 +99,72 @@
             <artifactId>commons-cli</artifactId>
             <version>1.8.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>2.12.18</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.rogach</groupId>
+            <artifactId>scallop_2.12</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.lihaoyi/upickle -->
+        <dependency>
+            <groupId>com.lihaoyi</groupId>
+            <artifactId>upickle_2.12</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.lihaoyi/os-lib -->
+        <dependency>
+            <groupId>com.lihaoyi</groupId>
+            <artifactId>os-lib_2.12</artifactId>
+            <version>0.10.3</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.lihaoyi/requests -->
+        <!--<dependency>
+            <groupId>com.lihaoyi</groupId>
+            <artifactId>requests_2.12</artifactId>
+            <version>0.9.0</version>
+        </dependency>-->
+
+        <!-- https://mvnrepository.com/artifact/org.jooq/jooq-codegen-maven -->
+        <!-- Required for requests_2.12-->
+        <!--<dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq-codegen-maven</artifactId>
+            <version>3.14.0</version>
+        </dependency>-->
+
+        <!-- https://mvnrepository.com/artifact/org.jooq/jooq -->
+        <!--<dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq</artifactId>
+            <version>3.14.0</version>
+        </dependency>-->
+
+
+        <!-- https://mvnrepository.com/artifact/com.softwaremill.sttp.client4/core -->
+        <!--<dependency>
+            <groupId>com.softwaremill.sttp.client4</groupId>
+            <artifactId>core_2.12</artifactId>
+            <version>4.0.0-M16</version>
+        </dependency>-->
+
+        <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
+        <!--<dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.14</version>
+        </dependency>-->
+
+
+
     </dependencies>
 
     <build>
@@ -171,6 +240,22 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>${scala.maven.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <scalaVersion>${scala.major.version}</scalaVersion>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>io.fabric8</groupId>
